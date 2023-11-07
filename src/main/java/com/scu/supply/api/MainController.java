@@ -193,4 +193,10 @@ public class MainController {
         // return inventory
         return ResponseEntity.ok().body(new ArrayList<Inventory>());
     }
+
+    @PostMapping("/inventory/destory/{id}")
+    public ResponseEntity<String> destoryInventoryByProductId(@PathVariable(value = "id") Long productId) {
+        // find the row in inventory table based on the productId, update the row expireddQuantity = 0
+        return ResponseEntity.ok().body("Successfully destroyed expired products!");
+    }
 }
