@@ -10,6 +10,12 @@
             <if test="stage != null">
                 stage=#{stage},
             </if>
+            <if test="description != null">
+                description=#{description},
+            </if>
+            <if test="price != null">
+                price=#{price},
+            </if>
         </set>
             where id = #{id}
     </update>

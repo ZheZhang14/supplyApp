@@ -2,6 +2,7 @@ package com.project.mapper;
 
 import com.project.pojo.dto.ProductCreatedDTO;
 import com.project.pojo.entities.Product;
+import com.project.pojo.vo.ProductVO;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Options;
@@ -13,12 +14,16 @@ import java.util.List;
 public interface ProductMapper {
 
     @Select("SELECT product.*, u.contact_name FROM product Join user u on product.user_id = u.id;")
-    List<Product> getAll();
+    List<ProductVO> getAll();
 
 
     @Select("select product.*,u.contact_name from product " +
+            "join user u on u.id = product.user_id where product.user_id=#{id};")
+    List<ProductVO> getProductsByUserId(Integer id);
+
+    @Select("select product.*,u.contact_name from product " +
             "join user u on u.id = product.user_id where product.id=#{id};")
-    Product getProductById(Integer id);
+    ProductVO getProductById(Integer id);
 
 
     @Insert("INSERT INTO product (product_name, description, price, user_id) " +

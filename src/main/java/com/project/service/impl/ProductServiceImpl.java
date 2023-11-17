@@ -5,10 +5,12 @@ import com.project.mapper.ProductMapper;
 import com.project.pojo.dto.ProductCreatedDTO;
 import com.project.pojo.entities.Product;
 import com.project.pojo.entities.Stage;
+import com.project.pojo.vo.ProductVO;
 import com.project.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -21,18 +23,19 @@ public class ProductServiceImpl implements ProductService {
     private InventoryMapper inventoryMapper;
 
     @Override
-    public List<Product> getAllProducts() {
+    public List<ProductVO> getAllProducts() {
         return productMapper.getAll();
     }
 
     @Override
-    public Product getProductByUserId(Integer id) {
-        return productMapper.getProductById(id);
+    public List<ProductVO> getProductByUserId(Integer id) {
+        return productMapper.getProductsByUserId(id);
     }
 
     @Override
     public void createProduct(ProductCreatedDTO productCreatedDTO) {
         productMapper.insert(productCreatedDTO);
+        inventoryMapper.initInventory(productCreatedDTO.getId());
     }
 
     @Override
@@ -40,6 +43,17 @@ public class ProductServiceImpl implements ProductService {
         Product product = Product.builder()
                 .id(id)
                 .stage(stage)
+                .build();
+
+        productMapper.update(product);
+    }
+
+    @Override
+    public void updateProduct(Integer id, String description, BigDecimal price) {
+        Product product = Product.builder()
+                .id(id)
+                .description(description)
+                .price(price)
                 .build();
 
         productMapper.update(product);

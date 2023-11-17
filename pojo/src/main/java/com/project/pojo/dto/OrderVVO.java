@@ -5,19 +5,22 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Order {
+public class OrderVVO {
     private Integer id;
     private String productName;
     private Integer count;
-    private Integer totalAmount;
+    private BigDecimal totalAmount;
     private String contactName;
     private OrderType orderType;
     private Status status;
+    private BigDecimal price;
+    private LocalDateTime createtime;
     private LocalDateTime updatetime;
 }

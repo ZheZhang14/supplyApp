@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class InventoryDTO {
+    private Integer id;
+    private Integer stock;
     private Integer damagedGoodsCount;
     private Integer expiredGoodsCount;
     private String valuation;

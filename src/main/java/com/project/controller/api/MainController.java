@@ -6,6 +6,7 @@ import com.project.exception.AccountNotFoundException;
 import com.project.exception.PasswordErrorException;
 import com.project.pojo.dto.*;
 import com.project.pojo.entities.*;
+import com.project.pojo.entities.OrderVVO;
 import com.project.pojo.vo.*;
 import com.project.properties.JwtProperties;
 import com.project.result.Result;
@@ -22,6 +23,7 @@ import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.io.File;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -140,25 +142,38 @@ public class MainController {
      * create product and product stage change
      */
     @GetMapping("/products")
-    public Result<List<Product>> getAllProducts() {
+    public Result<List<ProductVO>> getAllProducts() {
         return Result.success(productService.getAllProducts());
     }
 
     @GetMapping("/products/{id}")
-    public Result<Product> getProductByUserId(@PathVariable(value = "id") Integer id){
+    public Result<List<ProductVO>> getProductsByUserId(@PathVariable(value = "id") Integer id){
        return Result.success(productService.getProductByUserId(id));
     }
 
+    @PostMapping("/products/{id}/update")
+    public Result<List<ProductVO>> updateProduct(@PathVariable(value = "id") Integer id, @RequestParam Map<String,String> allParams){
+        BigDecimal price = new BigDecimal(allParams.get("price"));
+        String description = allParams.get("description");
+        productService.updateProduct(id, description, price);
+        return Result.success();
+    }
+
     @PostMapping("/products/create")
-    public Result createProduct(@RequestBody ProductCreatedDTO productCreatedDTO){
-        productCreatedDTO.setUserId(BaseContext.getCurrentId());
-        productService.createProduct(productCreatedDTO);
+    public Result createProduct(@RequestParam Map<String,String> allParams) throws Exception {
+        ProductCreatedDTO dto = new ProductCreatedDTO();
+        dto.setUserId(Integer.parseInt(allParams.get("userId")));
+        dto.setDescription(allParams.get("description"));
+        dto.setProductName(allParams.get("name"));
+        dto.setPrice(new BigDecimal(allParams.get("price")));
+        productService.createProduct(dto);
         return Result.success();
     }
 
     @PostMapping("/products/{id}/update/stage")
-    public Result<String> updateProductStage(@PathVariable(value = "id") Integer id, Stage stage){
-        productService.updateProductsStage(id,stage);
+    public Result<String> updateProductStage(@PathVariable(value = "id") Integer id, @RequestParam Map<String,String> allParams){
+        Stage stage = Stage.valueOf(allParams.get("stage"));
+        productService.updateProductsStage(id, stage);
         return Result.success();
     }
 
@@ -167,39 +182,63 @@ public class MainController {
      * create order and update order status
      */
     @GetMapping("/orders")
-    public Result<List<Order>> getAllOrders() {
-        List<Order> list = orderService.getAllOrders();
+    public Result<List<OrderVVO>> getAllOrders() {
+        List<OrderVVO> list = orderService.getAllOrders();
         return Result.success(list);
     }
 
     @GetMapping("/orders/{id}")
-    public Result <List<Order>> getOrderByUserId(@PathVariable(value = "id") Integer id){
-       List<Order> list = orderService.getOrderByUserId(id);
+    public Result <List<OrderVVO>> getOrderByUserId(@PathVariable(value = "id") Integer id){
+       List<OrderVVO> list = orderService.getOrderByUserId(id);
+        return Result.success(list);
+    }
+
+    @GetMapping("/orders/product/{pid}")
+    public Result <List<OrderVVO>> getOrdersByProductId(@PathVariable(value = "pid") Integer pid){
+        List<OrderVVO> list = orderService.getOrdersByProductId(pid);
         return Result.success(list);
     }
 
     @PostMapping("/orders/create")
-    public Result createOrder(@RequestBody OrderCreatedDTO orderCreatedDTO){
-        orderCreatedDTO.setUserId(BaseContext.getCurrentId());
-        orderService.createOrder(orderCreatedDTO);
-        return Result.success();
+    public Result createOrder(@RequestParam Map<String,String> allParams){
+        OrderCreatedDTO dto = new OrderCreatedDTO();
+        dto.setProductId(Integer.parseInt(allParams.get("productId")));
+        dto.setCount(Integer.parseInt(allParams.get("count")));
+        dto.setOrderType(OrderType.valueOf(allParams.get("orderType")));
+        try {
+            orderService.createOrder(dto);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
+        return Result.success("Successfully Created Order!");
     }
 
     @PostMapping("/orders/{id}/update/status")
-    public Result<String> updateOrder(@PathVariable(value="id") Integer id, Status status){
-        orderService.updateOrder(id,status);
+    public Result<String> updateOrder(@PathVariable(value="id") Integer id, @RequestParam Map<String,String> allParams){
+        orderService.updateOrder(id, Status.valueOf(allParams.get("status")), OrderType.valueOf(allParams.get("orderType")));
         return Result.success();
     }
 
     @GetMapping("/inventory")
-    public Result<List<Inventory>> getInventory(){
-        List<Inventory> list = inventoryService.getAllInventory();
+    public Result<List<InventoryVO>> getInventory(){
+        List<InventoryVO> list = inventoryService.getAllInventory();
         return Result.success(list);
     }
 
     @PostMapping("/inventory/{id}/update")
-    public Result<String> updateInventory(@PathVariable(value="id") Integer id, @RequestBody InventoryDTO inventoryDTO){
-        inventoryService.updateInventory(id,inventoryDTO);
+    public Result<String> updateInventory(@PathVariable(value="id") Integer id, @RequestParam Map<String,String> allParams){
+        InventoryDTO dto = new InventoryDTO();
+        dto.setId(id);
+        dto.setStock(Integer.parseInt(allParams.get("stock")));
+        dto.setExpiredGoodsCount(Integer.parseInt(allParams.get("expiredGoodsCount")));
+        dto.setValuation(allParams.get("valuation"));
+        String damagedGoodsCount = allParams.get("damagedGoodsCount");
+        if (damagedGoodsCount == null) {
+            dto.setDamagedGoodsCount(null);
+        } else {
+            dto.setDamagedGoodsCount(Integer.parseInt(damagedGoodsCount));
+        }
+        inventoryService.updateInventory(dto);
         return Result.success();
     }
 }
