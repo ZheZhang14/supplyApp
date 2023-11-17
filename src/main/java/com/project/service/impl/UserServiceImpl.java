@@ -47,9 +47,7 @@ public class UserServiceImpl implements UserService {
             throw new AccountNotFoundException(MessageConstant.ACCOUNT_NOT_FOUND);
         }
 
-        //密码比对
-        //对前端传过来的明文密码进行md5加密处理
-        password = DigestUtils.md5DigestAsHex(password.getBytes());
+        //密码比对 前端传过来的已经加过密了
         if (!password.equals(user.getPassword())) {
             //密码错误
             throw new PasswordErrorException(MessageConstant.PASSWORD_ERROR);
@@ -60,9 +58,9 @@ public class UserServiceImpl implements UserService {
     }
 
     public void register(User newUser){
-        UserByIdVO user = userMapper.getByUserId(newUser.getId());
-        if(user.getContactName() == newUser.getContactName()){
-            throw new RuntimeException("This contactName has already exist");
+        User user = userMapper.getByUsername(newUser.getUsername());
+        if (user != null) {
+            throw new RuntimeException("This username has already exist" + newUser.getUsername());
         }
         userMapper.register(newUser);
     }
@@ -81,7 +79,6 @@ public class UserServiceImpl implements UserService {
         userMapper.updateDetails(userEditDTO);
     }
 
-
     public OverviewVO getOverview() {
         Map map = new HashMap<>();
         map.put("user_role",supplier);
@@ -93,26 +90,38 @@ public class UserServiceImpl implements UserService {
         map.put("user_role",distributor);
         Integer distributorCount = userMapper.countByMap(map);
 
-        map.put("status",Done);
-        Integer orderDoneCount= userMapper.countByMap1(map);
-
         map.put("status",Created);
         Integer orderCreatedCount = userMapper.countByMap1(map);
 
         map.put("status",In_Progress);
         Integer inProgressCount= userMapper.countByMap1(map);
 
-        map.put("status",Return);
-        Integer returnCount= userMapper.countByMap1(map);
+        map.put("status",Rejected);
+        Integer orderRejectedCount= userMapper.countByMap1(map);
+
+        map.put("status",Done);
+        Integer orderDoneCount= userMapper.countByMap1(map);
+
+        map.put("status",Created);
+        Integer returnOrderCreatedCount = userMapper.countByMap2(map);
+
+        map.put("status",In_Progress);
+        Integer returnInProgressCount= userMapper.countByMap2(map);
+
+        map.put("status",Accepted);
+        Integer returnOrderAcceptedCount= userMapper.countByMap2(map);
 
         map.put("status",Rejected);
-        Integer rejectedCount= userMapper.countByMap1(map);
+        Integer returnOrderRejectedCount= userMapper.countByMap2(map);
+
+        map.put("status",Done);
+        Integer returnOrderDoneCount= userMapper.countByMap2(map);
 
         map.put("stage",On_Market);
-        Integer onMarket = userMapper.countByMap2(map);
+        Integer onMarket = userMapper.countByMap3(map);
 
         map.put("stage",Off_Market);
-        Integer offMarket = userMapper.countByMap2(map);
+        Integer offMarket = userMapper.countByMap3(map);
 
 
         return OverviewVO.builder()
@@ -121,17 +130,58 @@ public class UserServiceImpl implements UserService {
                 .manufacturerCount(manufacturerCount)
                 .orderCreatedCount(orderCreatedCount)
                 .inProgressCount(inProgressCount)
-                .doneCount(orderDoneCount)
+                .orderRejectedCount(orderRejectedCount)
+                .orderDoneCount(orderDoneCount)
+                .returnOrderCreatedCount(returnOrderCreatedCount)
+                .returnInProgressCount(returnInProgressCount)
+                .returnOrderAcceptedCount(returnOrderAcceptedCount)
+                .returnOrderRejectedCount(returnOrderRejectedCount)
+                .returnOrderDoneCount(returnOrderDoneCount)
                 .offMarketCount(offMarket)
                 .onMarketCount(onMarket)
-                .rejectedCount(rejectedCount)
-                .returnCount(returnCount)
                 .build();
     }
 
     @Override
-    public List<OrderOverviewVO> getOverviewByUserId(Integer id) {
-        List<OrderOverviewVO> list = orderMapper.getOverviewByUserId(id);
-        return list;
+    public OverviewVO getOverviewByUserId(Integer id) {
+        Map map = new HashMap<>();
+        map.put("status",Created);
+        Integer orderCreatedCount = userMapper.countByMap1AndUserId(map, id);
+
+        map.put("status",In_Progress);
+        Integer inProgressCount= userMapper.countByMap1AndUserId(map, id);
+
+        map.put("status",Rejected);
+        Integer orderRejectedCount= userMapper.countByMap1AndUserId(map, id);
+
+        map.put("status",Done);
+        Integer orderDoneCount= userMapper.countByMap1AndUserId(map, id);
+
+        map.put("status",Created);
+        Integer returnOrderCreatedCount = userMapper.countByMap2AndUserId(map, id);
+
+        map.put("status",In_Progress);
+        Integer returnInProgressCount= userMapper.countByMap2AndUserId(map, id);
+
+        map.put("status",Accepted);
+        Integer returnOrderAcceptedCount= userMapper.countByMap2AndUserId(map, id);
+
+        map.put("status",Rejected);
+        Integer returnOrderRejectedCount= userMapper.countByMap2AndUserId(map, id);
+
+        map.put("status",Done);
+        Integer returnOrderDoneCount= userMapper.countByMap2AndUserId(map, id);
+
+        return OverviewVO.builder()
+                .orderCreatedCount(orderCreatedCount)
+                .inProgressCount(inProgressCount)
+                .orderRejectedCount(orderRejectedCount)
+                .orderDoneCount(orderDoneCount)
+                .returnOrderCreatedCount(returnOrderCreatedCount)
+                .returnInProgressCount(returnInProgressCount)
+                .returnOrderAcceptedCount(returnOrderAcceptedCount)
+                .returnOrderRejectedCount(returnOrderRejectedCount)
+                .returnOrderDoneCount(returnOrderDoneCount)
+                .build();
     }
 }

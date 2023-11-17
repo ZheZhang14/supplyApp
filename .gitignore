@@ -1,5 +1,7 @@
+**/target/
+.idea
+*.iml
+*.class
+*Test.java
+**/test/
 *.DS_Store
-**/build/
-**/.gradle/
-.idea/
-***/target/*

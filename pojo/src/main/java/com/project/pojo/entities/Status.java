@@ -3,11 +3,7 @@ package com.project.pojo.entities;
 public enum Status {
     Created,
     In_Progress,
-
-     Return,
-
+    Accepted,
     Rejected,
-
     Done
-
 }

@@ -59,6 +59,7 @@ public class OrderServiceImpl implements OrderService {
         orderMapper.createOrder(orderCreatedDTO);
     }
 
+    // Keep here in mind!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ZHE!!!
     @Override
     public void updateOrder(Integer id, Status status) {
         Order order = Order.builder()
@@ -86,18 +87,18 @@ public class OrderServiceImpl implements OrderService {
                 inventoryMapper.insertStock(count,productId);
             }
         }
-        if(status.equals(Status.Return)){
-            List<Integer> productIds = inventoryMapper.getProductId();
-            for(Integer productId1 : productIds){
-                if(id == productId1){
-                    Integer count = order1.getCount();
-                    Integer stock = inventoryMapper.getstock(productId);
-                    Integer totalCount = count-stock;
-                    inventoryMapper.updateStock(totalCount,productId);
-                    break;
-                }
-            }
-        }
+//        if(status.equals(Status.Return)){
+//            List<Integer> productIds = inventoryMapper.getProductId();
+//            for(Integer productId1 : productIds){
+//                if(id == productId1){
+//                    Integer count = order1.getCount();
+//                    Integer stock = inventoryMapper.getstock(productId);
+//                    Integer totalCount = count-stock;
+//                    inventoryMapper.updateStock(totalCount,productId);
+//                    break;
+//                }
+//            }
+//        }
         orderMapper.updateOrder(order);
     }
 }

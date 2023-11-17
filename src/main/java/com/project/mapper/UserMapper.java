@@ -39,4 +39,10 @@ public interface UserMapper {
     Integer countByMap1(Map map);
 
     Integer countByMap2(Map map);
+
+    Integer countByMap3(Map map);
+
+    Integer countByMap1AndUserId(Map map, Integer userId);
+
+    Integer countByMap2AndUserId(Map map, Integer userId);
 }

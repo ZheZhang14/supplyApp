@@ -51,7 +51,7 @@ create table `order`
     product_id   int                                                                             null,
     count        int                                                                             not null,
     order_type   enum ('Create', 'Return')                                     default 'Create'  not null,
-    status       enum ('Created', 'In_Progress', 'Return', 'Rejected', 'Done') default 'Created' not null,
+    status       enum ('Created', 'In_Progress', 'Accepted', 'Rejected', 'Done') default 'Created' not null,
     constraint order_ibfk_1
         foreign key (user_id) references user (id),
     constraint order_ibfk_2

@@ -2,6 +2,8 @@ package com.project.controller.api;
 
 import com.project.constant.JwtClaimsConstant;
 import com.project.context.BaseContext;
+import com.project.exception.AccountNotFoundException;
+import com.project.exception.PasswordErrorException;
 import com.project.pojo.dto.*;
 import com.project.pojo.entities.*;
 import com.project.pojo.vo.*;
@@ -14,6 +16,8 @@ import com.project.service.UserService;
 import com.project.utils.JwtUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -25,7 +29,7 @@ import java.util.*;
 
 
 @RestController
-@RequestMapping("/api/v2")
+@RequestMapping("/api/v1")
 public class MainController {
 
     @Autowired
@@ -47,75 +51,63 @@ public class MainController {
      * User related, including sign in, signup, edit info, get all users, get user by id
      */
     @PostMapping("/users/signin")
-    public Result<UserLoginVO> signin(@RequestBody UserLoginDTO userLoginDTO) {
-        User user = userService.login(userLoginDTO);
-
-        Map<String,Object> claims = new HashMap<>();
-        claims.put(JwtClaimsConstant.USER_ID,user.getId());
-        String token = JwtUtil.createJWT(
-                jwtProperties.getUserSecretKey(),
-                jwtProperties.getUserTtl(),
-                claims);
+    public Result<?> signin(@RequestParam Map<String,String> allParams) {
+        UserLoginDTO dto = new UserLoginDTO();
+        dto.setUsername(allParams.get("username"));
+        dto.setPassword(allParams.get("password"));
+        User user;
+        try {
+            user = userService.login(dto);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
 
         UserLoginVO userLoginVO = UserLoginVO.builder()
                 .id(user.getId())
-                .userName(user.getUsername())
-                .token(token)
+                .name(user.getContactName())
+                .userType(user.getUserRole())
                 .build();
-
         return Result.success(userLoginVO);
     }
 
     @PostMapping("/users/signup")
-    public Result signup(@RequestBody UserRegisterDTO userRegisterDTO) throws Exception {
+    public Result signup(@RequestParam Map<String,String> allParams) throws Exception {
         User newUser = new User();
-        String originalFilename = userRegisterDTO.getImage().getOriginalFilename();
-        int index = originalFilename.lastIndexOf(".");
-        String extname = originalFilename.substring(index);
-        String newFileName = UUID.randomUUID().toString() +extname;
-        String filePath = "G:\\develop\\image\\" + newFileName;
-        userRegisterDTO.getImage().transferTo(new File("G:\\develop\\image\\"+newFileName));
-        BeanUtils.copyProperties(userRegisterDTO,newUser);
-        newUser.setImagePath(filePath);
+        newUser.setUsername(allParams.get("username"));
+        newUser.setPassword(allParams.get("password"));
+        newUser.setUserRole(UserType.valueOf(allParams.get("usertype")));
+        newUser.setEmail(allParams.get("email"));
+        newUser.setPhone(allParams.get("phone"));
+        newUser.setAddress(allParams.get("address"));
+        newUser.setContactName(allParams.get("name"));
+        newUser.setImagePath("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png");
         newUser.setDateCreated(LocalDateTime.now());
-        newUser.setPassword(DigestUtils.md5DigestAsHex(userRegisterDTO.getPassword().getBytes()));
         userService.register(newUser);
         return Result.success();
     }
 
 
     @PostMapping("/users/{id}/edit")
-    public Result editUser(@RequestBody UserEditDTO userEditDTO) throws Exception {
-        if (userEditDTO != null) {
-            if (userEditDTO.getPassword() != null && !userEditDTO.getPassword().isEmpty()) {
-                String hashedPassword = DigestUtils.md5DigestAsHex(userEditDTO.getPassword().getBytes());
-                userEditDTO.setPassword(hashedPassword);
-            }
-            UserByIdVO existingUser = userService.getUserById(userEditDTO.getId());
-            if (!existingUser.getUsername().equals(userEditDTO.getUsername())) {
-                return Result.error("Username cannot be changed");
-            }
-            if (existingUser.getUserRole() != userEditDTO.getUserRole()) {
-                return Result.error("User role cannot be changed");
-            }
-            String originalFilename = userEditDTO.getImage().getOriginalFilename();
-            int index = originalFilename.lastIndexOf(".");
-            String extname = originalFilename.substring(index);
-            String newFileName = UUID.randomUUID().toString() +extname;
-            String filePath = "G:\\develop\\image\\" + newFileName;
-            userEditDTO.getImage().transferTo(new File("G:\\develop\\image\\"+newFileName));
-            userEditDTO.setImagePath(filePath);
-            userService.update(userEditDTO);
-            return Result.success();
-        } else {
-            // Handle the case where userEditDTO is null
-            return Result.error("Invalid request body");
-        }
+    public Result editUser(@PathVariable(value = "id") Integer userId, @RequestParam Map<String,String> allParams) throws Exception {
+        UserEditDTO dto = new UserEditDTO();
+        dto.setId(userId);
+        dto.setUsername(allParams.get("username"));
+        dto.setPassword(allParams.get("password"));
+        dto.setUserRole(UserType.valueOf(allParams.get("usertype")));
+        dto.setEmail(allParams.get("email"));
+        dto.setPhone(allParams.get("phone"));
+        dto.setAddress(allParams.get("address"));
+        dto.setContactName(allParams.get("name"));
+        dto.setImagePath(allParams.get("imagePath"));
+
+        userService.update(dto);
+        return Result.success();
     }
 
 
     @GetMapping("/users")
     public Result<List<UserVO>> getAllUsers() {
+        System.out.println("getAllUsers");
         List<UserVO> list = userService.list();
         return Result.success(list);
     }
@@ -123,13 +115,6 @@ public class MainController {
     @GetMapping("/users/{userId}")
     public Result<UserByIdVO> getUserById(@PathVariable Integer userId) {
         UserByIdVO userById = userService.getUserById(userId);
-        if (userById.getImagePath() != null && Files.exists(Paths.get(userById.getImagePath()))) {
-            String imageUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .path("/users/")
-                    .path(userById.getId().toString())
-                    .toUriString();
-            userById.setImagePath(imageUrl); // 设置图片的URL
-        }
         return Result.success(userById);
     }
 
@@ -145,9 +130,9 @@ public class MainController {
     }
 
     @GetMapping("/overview/{id}")
-    public Result<List<OrderOverviewVO>> getOverviewByUserId(@PathVariable Integer id) {
-        List<OrderOverviewVO> list = userService.getOverviewByUserId(id);
-        return Result.success(list);
+    public Result<OverviewVO> getOverviewByUserId(@PathVariable Integer id) {
+        OverviewVO overviewVO = userService.getOverviewByUserId(id);
+        return Result.success(overviewVO);
     }
 
     /**

@@ -16,9 +16,13 @@ public class OverviewVO {
     private Integer manufacturerCount;
     private Integer orderCreatedCount;
     private Integer inProgressCount;
-    private Integer returnCount;
-    private Integer rejectedCount;
-    private Integer doneCount;
+    private Integer orderRejectedCount;
+    private Integer orderDoneCount;
+    private Integer returnOrderCreatedCount;
+    private Integer returnInProgressCount;
+    private Integer returnOrderAcceptedCount;
+    private Integer returnOrderRejectedCount;
+    private Integer returnOrderDoneCount;
     private Integer onMarketCount;
     private Integer offMarketCount;
 }

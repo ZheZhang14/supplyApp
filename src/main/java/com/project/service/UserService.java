@@ -24,5 +24,5 @@ public interface UserService {
 
     OverviewVO getOverview();
 
-    List<OrderOverviewVO> getOverviewByUserId(Integer id);
+    OverviewVO getOverviewByUserId(Integer id);
 }

@@ -20,12 +20,6 @@
             <if test="address != null">
                 address = #{address},
             </if>
-            <if test="dateCreated != null">
-                date_created = #{dateCreated},
-            </if>
-            <if test="updateUser != null">
-                update_user = #{updateUser},
-            </if>
             <if test="imagePath != null">
                 image_path = #{imagePath}
             </if>
@@ -45,19 +39,30 @@
 
     <select id="countByMap1" resultType="java.lang.Integer">
         select count(id) from `order`
-        <where>
-            <if test="status != null">
-                and status= #{status}
-            </if>
-        </where>
+        WHERE status= #{status} and order_type = 'Create'
     </select>
 
     <select id="countByMap2" resultType="java.lang.Integer">
+        select count(id) from `order`
+        WHERE status= #{status} and order_type = 'Return'
+    </select>
+
+    <select id="countByMap3" resultType="java.lang.Integer">
         select count(id) from product
         <where>
             <if test="stage != null">
                 and stage= #{stage}
             </if>
         </where>
+    </select>
+
+    <select id="countByMap1AndUserId" resultType="java.lang.Integer">
+        select count(id) from `order`
+        WHERE status= #{map.status} and order_type = 'Create' and user_id=#{userId}
+    </select>
+
+    <select id="countByMap2AndUserId" resultType="java.lang.Integer">
+        select count(id) from `order`
+        WHERE status= #{map.status} and order_type = 'Return' and user_id=#{userId}
     </select>
 </mapper>

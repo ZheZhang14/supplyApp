@@ -3,6 +3,6 @@ sky:
     driver-class-name: com.mysql.cj.jdbc.Driver
     host: localhost
     port: 3306
-    database: supply-chain-management
+    database: supplydb
     username: root
-    password: 1234
+    password: 12345678
